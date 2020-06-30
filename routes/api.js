@@ -3,19 +3,20 @@ var router = express.Router();
 var questionService = require('../services/question-service')
 
 /* GET users listing. */
-router.get('/:id', function(req, res, next) {
+router.get('/questions/:id', function(req, res, next) {
   questionService.getById(
     req.app.get('db'),
     req.params.id
   )
   .then(data=>{
-    if (!data) {
+    console.log(data);
+    if (data.length==0) {
         return res.status(404).json({
           error: { message: `question doesn't exist` }
         })
     }
     
-    res.render('question', { id: data[0].id, title:JSON.stringify(data) });
+    res.json(data);
     
   })
 });
