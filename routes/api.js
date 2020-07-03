@@ -12,8 +12,14 @@ const serializeQuestion = question => ({
   audio: question.audio
 })
 
+router.get('/questions', (req,res,next)=>{
+  questionService.getAll(req.app.get('db'))
+  .then(articles => {
+    res.json(articles)
+  })
+  .catch(next)
+})
 
-/* GET users listing. */
 router.get('/questions/:id', function(req, res, next) {
   questionService.getById(
     req.app.get('db'),

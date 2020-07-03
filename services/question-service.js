@@ -1,7 +1,12 @@
 const questionService = {
+getAll(db){
+  return db
+  .from('questions')
+  .select('*')
+},
 getById(db, id) {
     return db.from('questions').select('*').where('id', id).first()
-  },
+},
 insertQuestion(db, newQuestion){
   return db
     .insert(newQuestion)

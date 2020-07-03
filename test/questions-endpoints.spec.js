@@ -19,8 +19,32 @@ describe('Questions Endpoints', function() {
     before('clean the table', () => db('questions').truncate())
   
     afterEach('cleanup',() => db('questions').truncate())
+    
+    describe(`GET /api/questions`, () => {
+      context(`Given no questions`, () => {
+        it(`responds with 200 and an empty list`, () => {
+          return supertest(app)
+            .get('/api/questions')
+            .expect(200, [])
+        })
+      })
   
+      context('Given there are questions in the database', () => {
+        const testQuestions = makeQuestionsArray()
   
+        beforeEach('insert questions', () => {
+          return db
+            .into('questions')
+            .insert(testQuestions)
+        })
+  
+        it('responds with 200 and all of the questions', () => {
+          return supertest(app)
+            .get('/api/questions')
+            .expect(200, testQuestions)
+        })
+      })
+    })  
     describe(`GET /api/questions/:id`, () => {
       context(`Given no questions`, () => {
         it(`responds with 404`, () => {
@@ -51,7 +75,7 @@ describe('Questions Endpoints', function() {
       
     })
     describe(`POST /api/questions`, () => {
-      it(`creates an article, responding with 201 and the new article`, () => {
+      it(`creates a question, responding with 201 and the new question`, () => {
         const newQuestion = {
           answers: 'new answer',
           questiontext: 'new question',
@@ -97,17 +121,17 @@ describe('Questions Endpoints', function() {
             .insert(testQuestions)
         })
   
-        it('responds with 204 and removes the article', () => {
+        it('responds with 204 and removes the question', () => {
           const idToRemove = 2
           const expectedQuestions = testQuestions.filter(question => question.id !== idToRemove)
           return supertest(app)
             .delete(`/api/questions/${idToRemove}`)
             .expect(204)
-            // .then(res =>
-            //   supertest(app)
-            //     .get(`/api/questions`)
-            //     .expect(expectedQuestions)
-            // )
+            .then(res =>
+              supertest(app)
+                .get(`/api/questions`)
+                .expect(expectedQuestions)
+            )
         })
       })
     })
