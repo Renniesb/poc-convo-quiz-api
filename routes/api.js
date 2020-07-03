@@ -20,8 +20,7 @@ router.get('/questions/:id', function(req, res, next) {
     req.params.id
   )
   .then(data=>{
-    console.log(data);
-    if (data.length==0) {
+    if (!data) {
         return res.status(404).json({
           error: { message: `question doesn't exist` }
         })
@@ -31,14 +30,13 @@ router.get('/questions/:id', function(req, res, next) {
   
     
   })
+  .catch(next)
 });
 
-router.route('/questions').post(jsonBodyParser, function(req,res,next){
+router.post('/questions', jsonBodyParser, function(req,res,next){
   const {answers, questiontext, responsetext, correcttext, audio} = req.body
   const newQuestion = {answers, questiontext, responsetext, correcttext, audio}
 
-  console.log(answers)
-  console.log(questiontext)
 
   for (const [key, value] of Object.entries(jsonBodyParser))
       if (value == null)
@@ -54,6 +52,22 @@ router.route('/questions').post(jsonBodyParser, function(req,res,next){
       .json(serializeQuestion(question))
   })
   .catch(next)
+})
+
+router.delete('/questions/:id',(req, res, next) => {
+  questionService.deleteQuestion(
+    req.app.get('db'),
+    req.params.id
+  )
+    .then((data) => {
+      if (!data) {
+        return res.status(404).json({
+          error: { message: `Question doesn't exist` }
+        })
+      }
+      res.status(204).json().end()
+    })
+    .catch(next)
 })
 
 module.exports = router;

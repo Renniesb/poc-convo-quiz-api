@@ -1,11 +1,20 @@
 const questionService = {
-getById(knex, id) {
-    return knex.from('questions').select('*').where('id', id)
+getById(db, id) {
+    return db.from('questions').select('*').where('id', id).first()
   },
 insertQuestion(db, newQuestion){
   return db
     .insert(newQuestion)
     .into('questions')
+    .returning('*')
+    .then(rows => {
+       return rows[0]
+    })
+},
+deleteQuestion(db, id){
+  return db('questions')
+    .where({id})
+    .delete()
 }
 }
 
