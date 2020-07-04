@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
-var questionService = require('../services/question-service')
+var questionService = require('../services/question-service');
+const { route } = require('.');
 const jsonBodyParser = express.json()
 
 const serializeQuestion = question => ({
@@ -74,6 +75,42 @@ router.delete('/questions/:id',(req, res, next) => {
       res.status(204).json().end()
     })
     .catch(next)
+})
+
+router.patch('/questions/:id',jsonBodyParser, (req, res, next)=>{
+  const { 
+    answers,
+    questiontext,
+    responsetext,
+    correcttext,
+    audio
+  } = req.body
+  const questionToUpdate = {
+    answers,
+    questiontext,
+    responsetext,
+    correcttext, 
+    audio
+  }
+
+
+  const numberOfValues = Object.values(questionToUpdate).filter(Boolean).length
+  if(numberOfValues === 0)
+    return res.status(400).json({
+      error: {
+        message: `Request body must contain all relevant field values`
+      }
+    })
+  
+  questionService.updateQuestion(
+    req.app.get('db'),
+    req.params.id,
+    questionToUpdate
+  )
+  .then(()=>{
+    res.status(204).end()
+  })
+  .catch(next)
 })
 
 module.exports = router;

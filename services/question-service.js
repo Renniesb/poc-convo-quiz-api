@@ -1,4 +1,9 @@
 const questionService = {
+updateQuestion(db,id, newQuestionFields){
+  return db('questions')
+  .where({id})
+  .update(newQuestionFields)
+},
 getAll(db){
   return db
   .from('questions')

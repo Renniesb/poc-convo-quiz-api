@@ -135,6 +135,86 @@ describe('Questions Endpoints', function() {
         })
       })
     })
+    describe(`PATCH /api/questions/:id`, () => {
+      context(`Given no questions`, () => {
+        it(`responds with 404`, () => {
+          const questionId = 123456
+          return supertest(app)
+            .delete(`/api/questions/${questionId}`)
+            .expect(404, { error: { message: `Question doesn't exist` } })
+        })
+      })
+  
+      context('Given there are questions in the database', () => {
+        const testQuestions = makeQuestionsArray()
+  
+        beforeEach('insert questions', () => {
+          return db
+            .into('questions')
+            .insert(testQuestions)
+        })
+  
+        it('responds with 204 and updates the question', () => {
+          const idToUpdate = 2
+          const updateQuestion = {
+            answers: 'updated answer',
+            questiontext: 'updated question text' ,
+            responsetext: 'updated response',
+            correcttext: 'updated correct text', 
+            audio:'updated audio',
+          }
+          const expectedQuestion = {
+            ...testQuestions[idToUpdate - 1],
+            ...updateQuestion
+          }
+          return supertest(app)
+            .patch(`/api/questions/${idToUpdate}`)
+            .send(updateQuestion)
+            .expect(204)
+            .then(res =>
+              supertest(app)
+                .get(`/api/questions/${idToUpdate}`)
+                .expect(expectedQuestion)
+            )
+        })
+  
+        it(`responds with 400 when no required fields supplied`, () => {
+          const idToUpdate = 2
+          return supertest(app)
+            .patch(`/api/questions/${idToUpdate}`)
+            .send({ irrelevantField: 'foo' })
+            .expect(400, {
+              error: {
+                message: `Request body must contain all relevant field values`
+              }
+            })
+        })
+  
+        it(`responds with 204 when updating only a subset of fields`, () => {
+          const idToUpdate = 2
+          const updateQuestion = {
+            answers: 'updated answer',
+          }
+          const expectedQuestion = {
+            ...testQuestions[idToUpdate - 1],
+            ...updateQuestion
+          }
+  
+          return supertest(app)
+            .patch(`/api/questions/${idToUpdate}`)
+            .send({
+              ...updateQuestion,
+              fieldToIgnore: 'should not be in GET response'
+            })
+            .expect(204)
+            .then(res =>
+              supertest(app)
+                .get(`/api/questions/${idToUpdate}`)
+                .expect(expectedQuestion)
+            )
+        })
+      })
+    })
 })
 
 module.exports = {
