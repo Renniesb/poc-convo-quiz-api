@@ -24,15 +24,15 @@
     "http-errors": "~1.6.3",
     "knex": "^0.21.1",
     "morgan": "~1.9.1",
-    "pg": "^8.2.1",
-    "postgrator": "^3.2.0",
+    "pg": "^8.3.0",
+    "postgrator": "^3.11.1",
     "pug": "2.0.0-beta11"
   },
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^8.0.1",
     "nodemon": "^2.0.4",
-    "postgrator-cli": "^3.2.0",
+    "postgrator-cli": "^3.3.0",
     "supertest": "^4.0.2"
   }
 }
