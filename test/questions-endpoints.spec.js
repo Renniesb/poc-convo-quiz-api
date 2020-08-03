@@ -2,6 +2,8 @@
 const knex = require('knex')
 const app = require('../app')
 const makeQuestionsArray  = require('./questions.fixtures')
+const makeQuizArray  = require('./quiz.fixtures')
+const { expect } = require('chai')
 
 describe('Questions Endpoints', function() {
     let db
@@ -16,21 +18,35 @@ describe('Questions Endpoints', function() {
   
     after('disconnect from db', () => db.destroy())
   
-    before('clean the table', () => db('questions').truncate())
-  
-    afterEach('cleanup',() => db('questions').truncate())
+    before('clean the tables', () => db.raw('TRUNCATE TABLE quiz, questions CASCADE'))
     
-    describe(`GET /api/questions`, () => {
+    afterEach('clean the tables', () => db.raw('TRUNCATE TABLE quiz, questions CASCADE'))
+    
+    describe(`GET /api/questions/`, () => {
       context(`Given no questions`, () => {
+        const testQuizzes = makeQuizArray()
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        })
         it(`responds with 200 and an empty list`, () => {
+          const quizID = 1
           return supertest(app)
-            .get('/api/questions')
+            .get(`/api/quiz/${quizID}/questions`)
             .expect(200, [])
         })
       })
   
       context('Given there are questions in the database', () => {
+        const testQuizzes = makeQuizArray()
         const testQuestions = makeQuestionsArray()
+        
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        })
   
         beforeEach('insert questions', () => {
           return db
@@ -39,14 +55,16 @@ describe('Questions Endpoints', function() {
         })
   
         it('responds with 200 and all of the questions', () => {
+          const quizID = 1
+          let testQuizQuestions = testQuestions.filter(question => question.quiznum == quizID)
           return supertest(app)
-            .get('/api/questions')
-            .expect(200, testQuestions)
+            .get(`/api/quiz/${quizID}/questions`)
+            .expect(200, testQuizQuestions)
         })
       })
     })  
     describe(`GET /api/questions/:id`, () => {
-      context(`Given no questions`, () => {
+      context(`Given the question doesnt exist`, () => {
         it(`responds with 404`, () => {
           const questionId = 123456
           return supertest(app)
@@ -55,14 +73,22 @@ describe('Questions Endpoints', function() {
         })
       })
   
-      context('Given there are questions in the database', () => {
+      context('Given the question is in the database', () => {
+        const testQuizzes = makeQuizArray()
         const testQuestions = makeQuestionsArray()
+        
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        })
   
         beforeEach('insert questions', () => {
           return db
             .into('questions')
             .insert(testQuestions)
         })
+  
   
         it('responds with 200 and the specified question', () => {
           const questionId = 2
@@ -75,16 +101,26 @@ describe('Questions Endpoints', function() {
       
     })
     describe(`POST /api/questions`, () => {
+      const testQuizzes = makeQuizArray()
+        
+      beforeEach('insert quizzes', () => {
+        return db
+          .into('quiz')
+          .insert(testQuizzes)
+      })
       it(`creates a question, responding with 201 and the new question`, () => {
         const newQuestion = {
           answers: 'new answer',
           questiontext: 'new question',
           responsetext: 'New response text.',
           correcttext: 'new correct text',
-          audio: 'audio1'
+          link: 'audio1',
+          linktype: 'audio',
+          quiznum: 1,
+          
         }
         return supertest(app)
-          .post('/api/questions')
+          .post(`/api/questions`)
           .send(newQuestion)
           .expect(201)
           .expect(res => {
@@ -92,13 +128,15 @@ describe('Questions Endpoints', function() {
             expect(res.body.questiontext).to.eql(newQuestion.questiontext)
             expect(res.body.responsetext).to.eql(newQuestion.responsetext)
             expect(res.body.correcttext).to.eql(newQuestion.correcttext)
-            expect(res.body.audio).to.eql(newQuestion.audio)
+            expect(res.body.link).to.eql(newQuestion.link)
+            expect(res.body.linktype).to.eql(newQuestion.linktype)
             expect(res.body).to.have.property('id')
           })
-          .then(res =>
+          .then(res => {
             supertest(app)
               .get(`/api/questions/${res.body.id}`)
               .expect(res.body)
+          }
           )
       })
     })
@@ -114,7 +152,13 @@ describe('Questions Endpoints', function() {
   
       context('Given there are questions in the database', () => {
         const testQuestions = makeQuestionsArray()
-  
+        const testQuizzes = makeQuizArray()
+        
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        })        
         beforeEach('insert questions', () => {
           return db
             .into('questions')
@@ -147,6 +191,12 @@ describe('Questions Endpoints', function() {
   
       context('Given there are questions in the database', () => {
         const testQuestions = makeQuestionsArray()
+        const testQuizzes = makeQuizArray()
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        })
   
         beforeEach('insert questions', () => {
           return db
@@ -161,7 +211,8 @@ describe('Questions Endpoints', function() {
             questiontext: 'updated question text' ,
             responsetext: 'updated response',
             correcttext: 'updated correct text', 
-            audio:'updated audio',
+            link:'updated audio',
+            linktype:'audio'
           }
           const expectedQuestion = {
             ...testQuestions[idToUpdate - 1],
@@ -215,8 +266,197 @@ describe('Questions Endpoints', function() {
         })
       })
     })
+    describe(`GET /api/quiz`, () => {
+      
+      context(`Given no quizzes`, () => {
+        it(`responds with 200 and an empty list`, () => {
+          return supertest(app)
+            .get('/api/quiz')
+            .expect(200, [])
+        })
+      })
+  
+      context('Given there are quizzes in the database', () => {
+
+        const testQuizzes = makeQuizArray()
+        
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        }) 
+  
+        it('responds with 200 and all of the quizzes', () => {
+          return supertest(app)
+            .get('/api/quiz')
+            .expect(200, testQuizzes)
+        })
+      })
+    })
+    describe(`POST /api/quiz`, () => {
+      
+      it(`creates a quiz, responding with 201 and the new quiz`, () => {
+        const newQuiz = {
+          quizname:'Despicable me',
+          quizdescription:'A video quiz to test your comprehension'
+        }
+        return supertest(app)
+          .post(`/api/quiz`)
+          .send(newQuiz)
+          .expect(201)
+          .expect(res => {
+            expect(res.body.quizname).to.eql(newQuiz.quizname)
+            expect(res.body.quizdescription).to.eql(newQuiz.quizdescription)
+          })
+          .then(res =>
+            supertest(app)
+              .get(`/api/quiz/${res.body.id}`)
+              .expect(res.body)
+          )
+      })
+    })
+    describe(`GET /api/quiz/:id`, () => {
+      context(`Given no quiz`, () => {
+        it(`responds with 404`, () => {
+          const quizId = 123456
+          return supertest(app)
+            .get(`/api/quiz/${quizId}`)
+            .expect(404, { error: { message: `quiz doesn't exist` } })
+        })
+      })
+  
+      context('Given there are quizzes in the database', () => {
+        const testQuizzes = makeQuizArray()
+        
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        }) 
+  
+        it('responds with 200 and the specified question', () => {
+          const quizId = 2
+          const expectedQuiz = testQuizzes[quizId - 1]
+          return supertest(app)
+            .get(`/api/quiz/${quizId}`)
+            .expect(200, expectedQuiz)
+        })
+      })
+      
+    })  
+    describe(`DELETE /api/quiz/:id`, () => {
+      context(`Given no quiz`, () => {
+        it(`responds with 404`, () => {
+          const id = 123456
+          return supertest(app)
+            .delete(`/api/quiz/${id}`)
+            .expect(404, { error: { message: `quiz doesn't exist` } })
+        })
+      })
+  
+      context('Given there are quizzes in the database', () => {
+        const testQuizzes = makeQuizArray()
+        
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        })        
+  
+        it('responds with 204 and removes the quiz', () => {
+          const idToRemove = 2
+          const expectedQuizzes = testQuizzes.filter(quiz => quiz.id !== idToRemove)
+          return supertest(app)
+            .delete(`/api/quiz/${idToRemove}`)
+            .expect(204)
+            .then(res =>
+              supertest(app)
+                .get(`/api/quiz`)
+                .expect(expectedQuizzes)
+            )
+        })
+      })
+    })
+    describe(`PATCH /api/quiz/:id`, () => {
+      context(`Given no quizzes`, () => {
+        it(`responds with 404`, () => {
+          const quizID = 123456
+          return supertest(app)
+            .delete(`/api/quiz/${quizID}`)
+            .expect(404, { error: { message: `quiz doesn't exist` } })
+        })
+      })
+  
+      context('Given there are quizzes in the database', () => {
+        
+        const testQuizzes = makeQuizArray()
+        beforeEach('insert quizzes', () => {
+          return db
+            .into('quiz')
+            .insert(testQuizzes)
+        })
+  
+        it('responds with 204 and updates the quiz', () => {
+          const idToUpdate = 2
+          const updateQuiz = {
+            quizname: 'new quiz',
+            quizdescription: 'newdescription'
+          }
+          const expectedQuiz = {
+            ...testQuizzes[idToUpdate - 1],
+            ...updateQuiz
+          }
+          return supertest(app)
+            .patch(`/api/quiz/${idToUpdate}`)
+            .send(updateQuiz)
+            .expect(204)
+            .then(res =>
+              supertest(app)
+                .get(`/api/quiz/${idToUpdate}`)
+                .expect(expectedQuiz)
+            )
+        })
+  
+        it(`responds with 400 when no required fields supplied`, () => {
+          const idToUpdate = 2
+          return supertest(app)
+            .patch(`/api/quiz/${idToUpdate}`)
+            .send({ irrelevantField: 'foo' })
+            .expect(400, {
+              error: {
+                message: `Request body must contain all relevant field values`
+              }
+            })
+        })
+  
+        it(`responds with 204 when updating only a subset of fields`, () => {
+          const idToUpdate = 2
+          const updateQuiz = {
+            quizname: 'updated name',
+          }
+          const expectedQuiz = {
+            ...testQuizzes[idToUpdate - 1],
+            ...updateQuiz
+          }
+  
+          return supertest(app)
+            .patch(`/api/quiz/${idToUpdate}`)
+            .send({
+              ...updateQuiz,
+              fieldToIgnore: 'should not be in GET response'
+            })
+            .expect(204)
+            .then(res =>
+              supertest(app)
+                .get(`/api/quiz/${idToUpdate}`)
+                .expect(expectedQuiz)
+            )
+        })
+      })
+    })
 })
 
 module.exports = {
+    makeQuizArray,
     makeQuestionsArray
 }
