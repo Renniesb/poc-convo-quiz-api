@@ -9,6 +9,9 @@
     "migrate": "postgrator --config postgrator-config.js",
     "migrate:test": "env NODE_ENV=test npm run migrate"
   },
+  "engines": {
+    "node": "12.8.0"
+  },
   "dependencies": {
     "cookie-parser": "~1.4.4",
     "cors": "^2.8.5",
