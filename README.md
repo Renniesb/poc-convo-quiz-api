@@ -79,3 +79,21 @@ psql -U postgres -d quiz -f ./seeds/seed.quizzes.sql
 - `GET /`
   - Express Welcome to Express
 
+## Environmental Variables
+
+**for running the app:**
+
+`DATABASE_URL` is being used by `./src/server.js` to initialize knex.
+The expected format is:
+
+```bash
+"postgresql://$DB_USER:$DB_PASS@$DB_HOST:$DB_PORT/$DB_NAME"
+```
+
+
+You should only need `DATABASE_URL` to start the application.
+
+There are default values set in `./src/config.js` but they probably won't work for you. You should set your own values for it in your `.env`.
+
+
+
