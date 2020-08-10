@@ -30,3 +30,52 @@ Using postgrator behind scenes to read `.sql` files in `./migrations` dir.
 Use the files inside `./seeds` dir
 
 e.g. to seed the database named `quiz`:
+
+```bash
+psql -U $DB_USER -d $DB_NAME -f ./seeds/seed.quiz_questions.sql
+psql -U postgres -d quiz -f ./seeds/seed.quiz_questions.sql
+psql -U postgres -d quiz -f ./seeds/seed.quizzes.sql
+```
+
+
+## Endpoints
+
+### Quizzes
+
+- `GET /api/quiz`
+  - get all quizzes
+- `POST /api/quiz`
+  - create a quiz
+
+- `GET /api/quiz/:quizId`
+  - get a specific quiz
+- `PATCH /api/quiz/:quizId`
+  - update a specific quiz
+- `DELETE /api/quiz/:quizId`
+  - delete a specific quiz
+
+### Questions
+
+
+- `GET /api/questions`
+  - get all questions
+- `POST /api/questions`
+  - create a question
+  
+- `GET /api/quiz/:quizNum/questions`
+  - get all questions from a specific quiz
+
+- `GET /api/questions/:id`
+  - get a specific question
+- `PATCH /api/questions/:id`
+  - update a specific question
+- `DELETE /api/questions/:id`
+  - delete a specific question
+
+
+
+## Welcome
+
+- `GET /`
+  - Express Welcome to Express
+
