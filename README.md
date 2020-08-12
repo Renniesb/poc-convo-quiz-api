@@ -1,5 +1,7 @@
 # poc-convo-quiz-api
 
+link to live api: https://still-garden-93095.herokuapp.com/
+
 Migrations: https://www.npmjs.com/package/postgrator-cli
 
 Settings in [`./postgrator.js`](./postgrator.js)
