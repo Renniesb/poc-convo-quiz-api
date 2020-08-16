@@ -1,8 +1,10 @@
-var express = require('express');
-var router = express.Router();
-var quizService = require('../services/quiz-service');
-const { route } = require('.');
+var express = require('express')
+var router = express.Router()
+var quizService = require('../services/quiz-service')
+const { route } = require('.')
 const jsonBodyParser = express.json()
+
+//place response from the server into a serialized format
 
 const serializeQuestion = question => ({
   id: question.id,
@@ -14,11 +16,15 @@ const serializeQuestion = question => ({
   linktype: question.linktype,
   quiznum: question.quiznum
 })
+
+//place response from the server into a serialized format
+
 const serializeQuiz = quiz => ({
   id: quiz.id,
   quizname:quiz.quizname,
   quizdescription:quiz.quizdescription
 })
+//get all quizzes and post a new quiz
 router.route('/quiz')
 .get((req, res, next)=>{
   quizService.getAllQuizes(req.app.get('db'))
@@ -39,6 +45,8 @@ router.route('/quiz')
   })
   .catch(next)
 })
+
+// routes get, update and delete a specific quiz
 router.route('/quiz/:quizID')
 .get((req, res, next)=>{
   quizService.getQuizById(
@@ -50,7 +58,7 @@ router.route('/quiz/:quizID')
           error: { message: `quiz doesn't exist` }
       })
     }
-    res.json(data);
+    res.json(data)
     })
     .catch(next)
 })
@@ -88,6 +96,7 @@ router.route('/quiz/:quizID')
   
   
 })
+//get all questions from a specific quiz
 router.get('/quiz/:quizNum/questions', (req,res,next)=>{
   quizService.getQuizQuestions(req.app.get('db'),req.params.quizNum)
   .then(questions => {
@@ -95,24 +104,8 @@ router.get('/quiz/:quizNum/questions', (req,res,next)=>{
   })
   .catch(next)
 })
-router.get('/questions/:id', function(req, res, next) {
-  quizService.getQuestionById(
-    req.app.get('db'),
-    req.params.id
-  )
-  .then(data=>{
-    if (!data) {
-        return res.status(404).json({
-          error: { message: `question doesn't exist` }
-        })
-    }
-    
-    res.json(data);
-  
-    
-  })
-  .catch(next)
-})
+
+//get all questions and post a new question
 router.get('/questions', (req, res, next)=>{
   quizService.getAllQuestions(req.app.get('db'))
   .then(quiz => {
@@ -137,6 +130,25 @@ router.post('/questions', jsonBodyParser, function(req,res,next){
     res
       .status(201)
       .json(serializeQuestion(question))
+  })
+  .catch(next)
+})
+//get, update and delete a specific question
+router.get('/questions/:id', function(req, res, next) {
+  quizService.getQuestionById(
+    req.app.get('db'),
+    req.params.id
+  )
+  .then(data=>{
+    if (!data) {
+        return res.status(404).json({
+          error: { message: `question doesn't exist` }
+        })
+    }
+    
+    res.json(data)
+  
+    
   })
   .catch(next)
 })
@@ -173,7 +185,7 @@ router.patch('/questions/:id',jsonBodyParser, (req, res, next)=>{
     linktype
   }
 
-
+  //make sure that the question contains all the required values
   const numberOfValues = Object.values(questionToUpdate).filter(Boolean).length
   if(numberOfValues === 0)
     return res.status(400).json({
@@ -193,4 +205,4 @@ router.patch('/questions/:id',jsonBodyParser, (req, res, next)=>{
   .catch(next)
 })
 
-module.exports = router;
+module.exports = router

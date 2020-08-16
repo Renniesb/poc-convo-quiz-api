@@ -1,5 +1,6 @@
-require('dotenv').config();
+require('dotenv').config()
 
+//define the dependencies for postgrator to do migrations
 module.exports = {
   "migrationDirectory": "migrations",
   "driver": "pg",
