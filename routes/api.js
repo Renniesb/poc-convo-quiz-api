@@ -35,8 +35,8 @@ router.route('/quiz')
 })
 .post(jsonBodyParser,(req, res, next)=>{
 
-  const {quizname, quizdescription} = req.body
-  const newQuiz ={quizname, quizdescription} 
+  const {quizname, quizdescription, level, lock} = req.body
+  const newQuiz ={quizname, quizdescription, level, lock} 
   quizService.insertQuiz(req.app.get('db'), newQuiz)
   .then(quiz => {
     res
