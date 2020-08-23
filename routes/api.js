@@ -22,7 +22,9 @@ const serializeQuestion = question => ({
 const serializeQuiz = quiz => ({
   id: quiz.id,
   quizname:quiz.quizname,
-  quizdescription:quiz.quizdescription
+  quizdescription:quiz.quizdescription,
+  level: quiz.level,
+  locked: quiz.locked
 })
 //get all quizzes and post a new quiz
 router.route('/quiz')
@@ -77,8 +79,8 @@ router.route('/quiz/:quizID')
   .catch(next)
 })
 .patch((req, res, next)=>{
-  const {quizname, quizdescription} = req.body
-  const updatedQuiz = {quizname, quizdescription}
+  const {quizname, quizdescription, level, locked} = req.body
+  const updatedQuiz = {quizname, quizdescription, level, locked}
   
   const numberOfValues = Object.values(updatedQuiz).filter(Boolean).length
   if(numberOfValues === 0)

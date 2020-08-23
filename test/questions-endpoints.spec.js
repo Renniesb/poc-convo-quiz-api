@@ -298,7 +298,9 @@ describe('Questions Endpoints', function() {
       it(`creates a quiz, responding with 201 and the new quiz`, () => {
         const newQuiz = {
           quizname:'Despicable me',
-          quizdescription:'A video quiz to test your comprehension'
+          quizdescription:'A video quiz to test your comprehension',
+          level: 'Beginner',
+          locked: false
         }
         return supertest(app)
           .post(`/api/quiz`)
@@ -307,6 +309,8 @@ describe('Questions Endpoints', function() {
           .expect(res => {
             expect(res.body.quizname).to.eql(newQuiz.quizname)
             expect(res.body.quizdescription).to.eql(newQuiz.quizdescription)
+            expect(res.body.level).to.eql(newQuiz.level)
+            expect(res.body.locked).to.eql(newQuiz.locked)
           })
           .then(res =>
             supertest(app)
@@ -400,7 +404,9 @@ describe('Questions Endpoints', function() {
           const idToUpdate = 2
           const updateQuiz = {
             quizname: 'new quiz',
-            quizdescription: 'newdescription'
+            quizdescription: 'newdescription',
+            level: 'level',
+            locked: true
           }
           const expectedQuiz = {
             ...testQuizzes[idToUpdate - 1],
