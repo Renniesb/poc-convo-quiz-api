@@ -4,8 +4,8 @@ questionType text not null,
 answers text not null,
 questionText text not null,
 responseText text not null,
-correctText text,
-link text,
-linktype text,
+correctText text not null,
+link text not null,
+linktype text not null,
 quiznum integer references quiz(id) on delete cascade not Null
 ) 
