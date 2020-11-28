@@ -116,8 +116,8 @@ router.get('/questions', (req, res, next)=>{
   .catch(next)
 })
 router.post('/questions', jsonBodyParser, function(req,res,next){
-  const {answers, questiontext, responsetext, correcttext, link, linktype, quiznum} = req.body
-  const newQuestion = {answers, questiontext, responsetext, correcttext, link,linktype, quiznum}
+  const {questiontype, answers, questiontext, responsetext, correcttext, link, linktype, quiznum} = req.body
+  const newQuestion = {questiontype, answers, questiontext, responsetext, correcttext, link,linktype, quiznum}
 
 
   for (const [key, value] of Object.entries(jsonBodyParser))
