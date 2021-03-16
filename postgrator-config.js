@@ -1,5 +1,5 @@
 const pg = require('pg');
-pg.defaults.ssl = process.env.NODE_ENV === "production";
+pg.defaults.ssl = process.env.NODE_ENV === "production" ? {rejectUnauthorized: false}: false;
 require('dotenv').config()
 
 //define the dependencies for postgrator to do migrations
